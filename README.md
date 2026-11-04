@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
 
-## Getting Started
+# 🏺 Skills Reliquary
 
-First, run the development server:
+**Teach your AI agents once. Reuse everywhere.**
+
+A place to write, collect, and share the reusable skills that make AI agents good at specific jobs, from code review checklists to release workflows.
+
+[**Live site →**](https://skills-reliquary.vercel.app) &nbsp;·&nbsp;
+[Browse skills](https://skills-reliquary.vercel.app/skills) &nbsp;·&nbsp;
+[Sign up](https://skills-reliquary.vercel.app/register)
+
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Deployed on Vercel](https://img.shields.io/badge/Deployed_on-Vercel-black?logo=vercel)
+
+</div>
+
+---
+
+## What it does
+
+A **skill** is a plain-text set of instructions, with a name, a short description, and the content an agent should follow. Skills Reliquary lets you:
+
+- 🔎 **Discover**: browse public skills other people have written and reuse what already works.
+- ✍️ **Write**: capture a workflow once as a skill, starting from a ready-made template.
+- 🔒 **Share or keep private**: publish a skill for everyone, or keep it private in your dashboard.
+- 🛠️ **Manage**: edit and delete your own skills from a personal dashboard.
+
+## Live demo
+
+| Page | Link |
+| --- | --- |
+| Home | https://skills-reliquary.vercel.app |
+| Browse skills | https://skills-reliquary.vercel.app/skills |
+| Register | https://skills-reliquary.vercel.app/register |
+| Log in | https://skills-reliquary.vercel.app/login |
+| Dashboard (after login) | https://skills-reliquary.vercel.app/dashboard |
+
+Every push to `main` deploys to production on Vercel, and every pull request gets its own preview deployment.
+
+## Tech stack
+
+- **Framework:** [Next.js 16](https://nextjs.org) App Router with Cache Components (`"use cache"` + `cacheLife`) and Server Actions
+- **UI:** React 19, [Tailwind CSS 4](https://tailwindcss.com), [daisyUI 5](https://daisyui.com)
+- **Database:** PostgreSQL via [Prisma 7](https://www.prisma.io) with the `pg` driver adapter
+- **Auth:** email and password, hashed with bcrypt, kept in an httpOnly cookie
+- **Hosting:** [Vercel](https://vercel.com) with Prisma Postgres
+
+## Getting started locally
+
+**Prerequisites:** Node.js 20+ and Docker (for the local database).
 
 ```bash
+# 1. Install dependencies (also generates the Prisma client)
+npm install
+
+# 2. Start PostgreSQL
+docker compose up -d
+
+# 3. Point the app at it
+echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/skills_db"' > .env
+
+# 4. Create the tables
+npx prisma migrate dev
+
+# 5. Run the dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string (`postgres://…`). |
+| `AUTH_TOKEN_EXPIRY_HOURS` | No | How long a login lasts. Defaults to `24`. |
 
-## Learn More
+### Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Apply pending migrations, then build for production |
+| `npm start` | Serve the production build |
+| `npm run lint` | Run ESLint |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+app/
+├── (auth)/            Login and register pages
+├── api/               Route handlers for auth and skills
+├── actions/           Server Actions for creating, updating, deleting skills
+├── components/        Header, Footer, Providers
+├── dashboard/         Your skills, plus create and edit forms
+├── hooks/             useAuth client hook
+├── skills/            Public skill list and detail pages
+├── lib/               Prisma client and auth helpers
+└── page.tsx           Landing page
+prisma/
+├── schema.prisma      User and Skill models
+└── migrations/        SQL migrations
+```
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The app runs on Vercel and is connected to this repository:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Import the repo on [vercel.com/new](https://vercel.com/new).
+2. Add a Postgres database (for example Prisma Postgres from **Storage**) and make sure `DATABASE_URL` is a `postgres://…` connection string.
+3. Push to `main`. The build runs `prisma migrate deploy` before `next build`, so the database schema stays in sync automatically.
