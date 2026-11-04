@@ -8,7 +8,7 @@ import { createSkill } from "@/actions/skills";
 
 export default function NewSkillPage() {
     const router = useRouter();
-    const { user, isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [content, setContent] = useState("---\nname: my-skill\ndescription: What this skill does\n---\n\n# Skill Title\n\nInstructions for how to use this skill...\n");
@@ -39,8 +39,7 @@ export default function NewSkillPage() {
                   description: description.trim(),
                   content: content.trim(),
                   isPublic,
-              },
-              user!.id
+              }
             );
 
             if (result.success) {

@@ -47,7 +47,7 @@ Every push to `main` deploys to production on Vercel, and every pull request get
 - **Framework:** [Next.js 16](https://nextjs.org) App Router with Cache Components (`"use cache"` + `cacheLife`) and Server Actions
 - **UI:** React 19, [Tailwind CSS 4](https://tailwindcss.com), [daisyUI 5](https://daisyui.com)
 - **Database:** PostgreSQL via [Prisma 7](https://www.prisma.io) with the `pg` driver adapter
-- **Auth:** email and password, hashed with bcrypt, kept in an httpOnly cookie
+- **Auth:** email and password hashed with bcrypt, and an HMAC-signed session in an httpOnly cookie
 - **Hosting:** [Vercel](https://vercel.com) with Prisma Postgres
 
 ## Getting started locally
@@ -63,6 +63,7 @@ docker compose up -d
 
 # 3. Point the app at it
 echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/skills_db"' > .env
+echo "AUTH_SECRET=\"$(openssl rand -base64 48)\"" >> .env
 
 # 4. Create the tables
 npx prisma migrate dev
@@ -78,6 +79,7 @@ Then open [http://localhost:3000](http://localhost:3000).
 | Variable | Required | Description |
 | --- | --- | --- |
 | `DATABASE_URL` | Yes | PostgreSQL connection string (`postgres://…`). |
+| `AUTH_SECRET` | Yes | Random string of 32+ characters used to sign login cookies. Generate one with `openssl rand -base64 48`. |
 | `AUTH_TOKEN_EXPIRY_HOURS` | No | How long a login lasts. Defaults to `24`. |
 
 ### Scripts
@@ -112,5 +114,5 @@ prisma/
 The app runs on Vercel and is connected to this repository:
 
 1. Import the repo on [vercel.com/new](https://vercel.com/new).
-2. Add a Postgres database (for example Prisma Postgres from **Storage**) and make sure `DATABASE_URL` is a `postgres://…` connection string.
+2. Add a Postgres database (for example Prisma Postgres from **Storage**) and make sure `DATABASE_URL` is a `postgres://…` connection string. Add `AUTH_SECRET` as well.
 3. Push to `main`. The build runs `prisma migrate deploy` before `next build`, so the database schema stays in sync automatically.

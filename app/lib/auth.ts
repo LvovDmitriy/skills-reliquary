@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
@@ -36,13 +37,38 @@ export function generateToken(user: {
     exp: Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
   };
 
-  return Buffer.from(JSON.stringify(payload)).toString("base64");
+  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  return `${body}.${sign(body)}`;
+}
+
+function getSecret(): string {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error("AUTH_SECRET must be set to at least 32 characters");
+  }
+  return secret;
+}
+
+function sign(body: string): string {
+  return createHmac("sha256", getSecret()).update(body).digest("base64url");
 }
 
 export function verifyToken(token: string): TokenPayload | null {
+  const [body, signature, ...rest] = token.split(".");
+  if (!body || !signature || rest.length > 0) {
+    return null;
+  }
+
+  // Reject tokens that weren't signed with our secret
+  const expected = Buffer.from(sign(body));
+  const actual = Buffer.from(signature);
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) {
+    return null;
+  }
+
   try {
     const payload = JSON.parse(
-      Buffer.from(token, "base64").toString("utf-8")
+      Buffer.from(body, "base64url").toString("utf-8")
     ) as TokenPayload;
 
     // Check expiration

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getCurrentUser } from "@/lib/auth";
 
 interface SkillFormData {
     name: string;
@@ -17,9 +18,13 @@ interface ActionResult {
 }
 
 export async function createSkill(
-  data: SkillFormData,
-  userId: number
+  data: SkillFormData
 ): Promise<ActionResult> {
+    const user = await getCurrentUser();
+    if (!user) {
+        return { success: false, error: "Not authenticated" };
+    }
+
     try {
         const skill = await prisma.skill.create({
             data: {
@@ -27,7 +32,7 @@ export async function createSkill(
                 description: data.description,
                 content: data.content,
                 isPublic: data.isPublic,
-                authorId: userId,
+                authorId: user.userId,
             },
         });
 
@@ -43,9 +48,13 @@ export async function createSkill(
 
 export async function updateSkill(
   id: number,
-  data: SkillFormData,
-  userId: number
+  data: SkillFormData
 ): Promise<ActionResult> {
+    const user = await getCurrentUser();
+    if (!user) {
+        return { success: false, error: "Not authenticated" };
+    }
+
     try {
         // Verify ownership
         const existing = await prisma.skill.findUnique({
@@ -53,7 +62,7 @@ export async function updateSkill(
             select: { authorId: true },
         });
 
-        if (!existing || existing.authorId !== userId) {
+        if (!existing || existing.authorId !== user.userId) {
             return { success: false, error: "Not authorized to edit this skill" };
         }
 
@@ -79,9 +88,13 @@ export async function updateSkill(
 }
 
 export async function deleteSkill(
-  id: number,
-  userId: number
+  id: number
 ): Promise<ActionResult> {
+    const user = await getCurrentUser();
+    if (!user) {
+        return { success: false, error: "Not authenticated" };
+    }
+
     try {
         // Verify ownership
         const existing = await prisma.skill.findUnique({
@@ -89,7 +102,7 @@ export async function deleteSkill(
             select: { authorId: true },
         });
 
-        if (!existing || existing.authorId !== userId) {
+        if (!existing || existing.authorId !== user.userId) {
             return { success: false, error: "Not authorized to delete this skill" };
         }
 
